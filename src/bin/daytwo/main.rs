@@ -68,11 +68,20 @@ impl FromStr for Round {
 
 impl Round {
     fn score_round(self) -> u32 {
-        let hand_shape_score = self.suggested_response.score_hand_shape();
+        let opponent_hand_shape_score = self.opponent_handshape.score_hand_shape();
+        let response_hand_shape_score = self.suggested_response.score_hand_shape();
 
-        let total_score = hand_shape_score;
+        let win_draw_loss_score = if opponent_hand_shape_score == response_hand_shape_score {
+            3
+        } else if opponent_hand_shape_score % 3 == response_hand_shape_score - 1 {
+            6
+        } else {
+            0
+        };
 
-        total_score
+        let round_score = response_hand_shape_score + win_draw_loss_score;
+
+        round_score
     }
 }
 
@@ -84,10 +93,7 @@ fn main() {
         .lines()
         .map(|round| round.parse::<Round>().unwrap());
 
-    for round in strategy_guide {
-        println!(
-            "{:?} vs {:?}",
-            round.opponent_handshape, round.suggested_response
-        )
-    }
+    let total_score: u32 = strategy_guide.map(|round| round.score_round()).sum();
+
+    println!("Total score achieved when following the strategy guide: {total_score}");
 }
